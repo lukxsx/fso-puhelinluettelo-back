@@ -1,6 +1,8 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 app.use(express.json())
+app.use(morgan('tiny'))
 
 const PORT = 3001
 
@@ -22,7 +24,7 @@ let persons = [
   }
 ]
 
-app.get('/api/persons', (response) => {
+app.get('/api/persons', (_, response) => {
   response.json(persons)
 })
 
@@ -83,7 +85,7 @@ app.post('/api/persons', (request, response) => {
   response.json(person)
 })
 
-app.get('/info', (response) => {
+app.get('/info', (_, response) => {
   const date = new Date()
   response.send(
     `<p>There are ${persons.length} numbers saved in the phonebook.</p>
