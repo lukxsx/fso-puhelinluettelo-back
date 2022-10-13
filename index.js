@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+app.use(express.json())
 
 const PORT = 3001
 
@@ -21,7 +22,7 @@ let persons = [
   }
 ]
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (response) => {
   response.json(persons)
 })
 
@@ -48,7 +49,41 @@ app.delete('/api/persons/:id', (request, response) => {
   }
 })
 
-app.get('/info', (request, response) => {
+const giveFreeRandomId = () => {
+  let num = 0
+  while (true) {
+    num = Math.floor(Math.random() * 1000) + 1
+    if (!persons.find(p => p.id === num)) {
+      break
+    }
+  }
+  return num
+}
+
+app.post('/api/persons', (request, response) => {
+  if (!request.body.name) {
+    return response.status(400).json({
+      error: 'name missing!'
+    })
+  }
+  if (!request.body.number) {
+    return response.status(400).json({
+      error: 'number missing!'
+    })
+  }
+  if (persons.find(p => p.name === request.body.name)) {
+    return response.status(400).json({
+      error: 'name is already in the phonebook!'
+    })
+  }
+  
+  const person = { ...request.body, id: giveFreeRandomId()}
+  console.log(person)
+  persons = persons.concat(person)
+  response.json(person)
+})
+
+app.get('/info', (response) => {
   const date = new Date()
   response.send(
     `<p>There are ${persons.length} numbers saved in the phonebook.</p>
