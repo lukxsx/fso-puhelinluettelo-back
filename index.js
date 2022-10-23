@@ -2,7 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const person = require('./models/person'
+const Person = require('./models/person'
 )
 
 const app = express()
@@ -41,7 +41,7 @@ let persons = [
 ]
 
 app.get('/api/persons', (_, response) => {
-  person.find({}).then(p => {
+  Person.find({}).then(p => {
     response.json(p)
   })
 })
@@ -97,9 +97,9 @@ app.post('/api/persons', (request, response) => {
     })
   }
   
-  const person = { ...request.body, id: giveFreeRandomId()}
+  const person = new Person({ ...request.body, id: giveFreeRandomId()})
   console.log(person)
-  persons = persons.concat(person)
+  person.save()
   response.json(person)
 })
 
