@@ -2,8 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const Person = require('./models/person'
-)
+const Person = require('./models/person')
 
 const app = express()
 
@@ -19,6 +18,13 @@ morgan.token('json', (request, _) => {
   }
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :json'))
+
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message)
+  
+  next(error)
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 
@@ -47,26 +53,26 @@ app.get('/api/persons', (_, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(p => p.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      console.log(error)
+      response.status(400).send({error: 'malformatted id'})
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  
-  // check if person exists
-  const person = persons.find(p => p.id === id)
-  if (person) {
-    persons = persons.filter(p => p.id !== id)
-    response.status(204).end()
-  } else {
-    response.status(404).end()
-  }
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (request, response) => {
