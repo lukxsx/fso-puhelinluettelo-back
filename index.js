@@ -6,9 +6,8 @@ const Person = require('./models/person')
 
 const app = express()
 
-app.use(express.json())
-app.use(cors())
 app.use(express.static('build'))
+app.use(express.json())
 
 morgan.token('json', (request, _) => {
     if (request.method === "POST") {
@@ -20,31 +19,17 @@ morgan.token('json', (request, _) => {
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :json'))
 
 const errorHandler = (error, request, response, next) => {
-  console.log(error.message)
-  
+  console.log("\n\nERROR\n\n")
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
   next(error)
 }
-app.use(errorHandler)
 
 const PORT = process.env.PORT
-
-let persons = [
-  {
-    id: 1,
-    name: "Example User",
-    number: "123-123456"
-  },
-  {
-    id: 2,
-    name: "Matti Meikäläinen",
-    number: "1122334455"
-  },
-  {
-    id: 3,
-    name: "Erkki Esimerkki",
-    number: "66339933"
-  }
-]
 
 app.get('/api/persons', (_, response) => {
   Person.find({}).then(p => {
@@ -52,7 +37,8 @@ app.get('/api/persons', (_, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -61,10 +47,7 @@ app.get('/api/persons/:id', (request, response) => {
         response.status(404).end()
       }
     })
-    .catch(error => {
-      console.log(error)
-      response.status(400).send({error: 'malformatted id'})
-  })
+    .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
@@ -105,6 +88,8 @@ app.get('/info', (_, response) => {
     <p>${date.toString()}</p>`
   )
 })
+
+app.use(errorHandler)
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
