@@ -69,17 +69,6 @@ app.delete('/api/persons/:id', (request, response) => {
   }
 })
 
-const giveFreeRandomId = () => {
-  let num = 0
-  while (true) {
-    num = Math.floor(Math.random() * 1000) + 1
-    if (!persons.find(p => p.id === num)) {
-      break
-    }
-  }
-  return num
-}
-
 app.post('/api/persons', (request, response) => {
   if (!request.body.name) {
     return response.status(400).json({
@@ -97,7 +86,7 @@ app.post('/api/persons', (request, response) => {
     })
   }
   
-  const person = new Person({ ...request.body, id: giveFreeRandomId()})
+  const person = new Person({ ...request.body})
   console.log(person)
   person.save()
   response.json(person)
