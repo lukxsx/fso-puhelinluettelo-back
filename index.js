@@ -10,16 +10,16 @@ app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 
-morgan.token('json', (request, _) => {
-    if (request.method === "POST") {
-      return JSON.stringify(request.body)
+morgan.token('json', (request, response) => {
+  if (request.method === 'POST') {
+    return JSON.stringify(request.body)
   } else {
-    return " "
+    return ' '
   }
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :json'))
 
-app.get('/api/persons', (_, response) => {
+app.get('/api/persons', (request, response) => {
   Person.find({}).then(p => {
     response.json(p)
   })
@@ -52,10 +52,10 @@ app.put('/api/persons/:id', (request, response, next) => {
   }
 
   Person.findByIdAndUpdate(request.params.id, modifiedPerson, {
-      new: true,
-      runValidators: true,
-      context: 'query'
-    })
+    new: true,
+    runValidators: true,
+    context: 'query'
+  })
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
@@ -83,19 +83,19 @@ app.post('/api/persons', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.get('/info', (_, response) => {
+app.get('/info', (request, response, next) => {
   Person.count({})
     .then(count => {
-    const date = new Date()
-    response.send(
-    `<p>There are ${count} numbers saved in the phonebook.</p>
+      const date = new Date()
+      response.send(
+        `<p>There are ${count} numbers saved in the phonebook.</p>
     <p>${date.toString()}</p>`)
-  })
-  .catch(error => next(error))
+    })
+    .catch(error => next(error))
 })
 
 const errorHandler = (error, request, response, next) => {
-  console.log("\n\nERROR\n\n")
+  console.log('\n\nERROR\n\n')
   console.error(error.message)
 
   if (error.name === 'CastError') {
